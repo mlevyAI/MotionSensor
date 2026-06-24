@@ -2,20 +2,20 @@ name: Deploy web PWA to GitHub Pages
 
 on:
   push:
-    branches: [main, claude/rn-security-camera-arch-363uiw]
+    branches: [main]
   workflow_dispatch:
 
+# Publishing to the gh-pages branch only needs contents:write, so this succeeds
+# without the repo-admin "enable Pages" API call (which the default token can't do).
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,10 +23,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Configure Pages (auto-enable if needed)
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - run: npm ci
       - name: Export web build
         env:
@@ -35,16 +31,9 @@ jobs:
         run: npx expo export --platform web
       - name: Disable Jekyll (keep _expo/ assets)
         run: touch dist/.nojekyll
-      - uses: actions/upload-pages-artifact@v3
+      - name: Publish to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
