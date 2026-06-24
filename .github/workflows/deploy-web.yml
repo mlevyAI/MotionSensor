@@ -28,8 +28,9 @@ jobs:
       - run: npm ci
       - name: Export web build
         env:
-          # Project pages serve under /<repo>/ — set the asset base path.
-          EXPO_BASE_URL: /motionsensor
+          # Project pages serve under /<repo>/ and the path is CASE-SENSITIVE,
+          # so this must match the exact repo name casing (MotionSensor).
+          EXPO_BASE_URL: /MotionSensor
         run: npx expo export --platform web
       - name: Disable Jekyll (keep _expo/ assets)
         run: touch dist/.nojekyll

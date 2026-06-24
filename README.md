@@ -59,11 +59,13 @@ selected once — the default Actions token cannot enable Pages itself.
 1. The workflow runs on `main` and creates/updates the `gh-pages` branch.
 2. One-time (repo must be public): **Settings → Pages → Build and deployment →
    Source: Deploy from a branch → Branch: `gh-pages` / `(root)`** → Save.
-3. Open `https://<owner>.github.io/motionsensor/` in Safari on your iPhone and
-   **Allow** camera access.
+3. Open `https://<owner>.github.io/MotionSensor/` in Safari on your iPhone and
+   **Allow** camera access. The path is **case-sensitive** and must match the
+   repo name exactly (`MotionSensor`, not `motionsensor`).
 
-> The export uses `EXPO_BASE_URL=/motionsensor` so assets resolve under the
-> project-pages subpath. For root hosting (Netlify/Vercel), build without that env.
+> The export uses `EXPO_BASE_URL=/MotionSensor` (exact repo-name case) so assets
+> resolve under the project-pages subpath. For root hosting (Netlify/Vercel),
+> build without that env.
 
 ## How to use it
 
