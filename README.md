@@ -16,14 +16,15 @@ labeling, and persistence carry over.
 - **Tier-1 motion detection** — each camera frame is downscaled to grayscale and
   diffed against the previous frame; the image is split into a 4×4 grid and each
   zone gets a motion score (fraction of changed pixels). This is the *only*
-  signal — it knows "sustained motion in region X", not posture/gesture/identity.
-- **Labeling loop** — significant motion auto-captures a frame (or tap **Capture**).
-  Tag it allowed / not-allowed and pick which zones to watch. Examples persist in
-  IndexedDB on-device.
-- **Derived thresholds** — per-zone alert thresholds are computed from your labels
-  so allowed motion stays below and not-allowed motion trips the alert.
-- **Alert** — when **armed**, a watched zone over its threshold for several
-  consecutive frames plays a Web Audio alarm + vibration + on-screen banner.
+  signal — it knows "movement in region X", not posture/gesture/identity.
+- **Zone calibration** — with the phone held still, you tap the grid to mark
+  **off-limits zones** (where movement is not allowed). Selection + sensitivity
+  persist on-device (localStorage).
+- **Sensitivity** — Low / Medium / High set how much movement (fraction of a
+  zone's pixels changing) counts as a trigger.
+- **Alert** — when **armed**, any off-limits zone whose motion crosses the
+  sensitivity threshold for several consecutive frames plays a Web Audio alarm +
+  vibration + on-screen banner.
 
 ### Verified constraints (by design)
 
@@ -69,12 +70,13 @@ selected once — the default Actions token cannot enable Pages itself.
 
 ## How to use it
 
-1. **Start camera** → grant permission. The grid overlay shows live motion.
-2. Move in front of the camera — a **capture** pops up. Tag a benign movement
-   **Allowed**; tag the movement you care about **Not allowed** and confirm its
-   zones.
-3. Once at least one zone is watched, **Arm watch**. Reproduce the not-allowed
-   motion → alarm + banner. Allowed-type motion stays silent.
+1. Prop the phone up, pointed at the scene, and **keep it still** (moving the
+   camera looks like motion everywhere).
+2. **Start camera** → grant permission. The 4×4 grid appears over the live view.
+3. **Tap the zones where movement is not allowed** (they turn blue). Pick a
+   **sensitivity**.
+4. **Arm watch.** Any movement in an off-limits zone → alarm + vibration + banner.
+   Disarm to edit zones again.
 
 ## Project layout
 
@@ -82,10 +84,10 @@ selected once — the default Actions token cannot enable Pages itself.
 src/
   camera/      CameraView.web.tsx (getUserMedia) · *.native.tsx stub · shared types
   detection/   motion.ts (frame-diff zone scoring) · types.ts   [pure, shared]
-  labeling/    types.ts · thresholds.ts (derive config) · repository (IndexedDB)
-  engine/      useMotionEngine.ts (frame -> score -> trigger -> alert orchestration)
+  labeling/    thresholds.ts (isTriggered/triggeringZones) · types.ts (ZoneConfig)
+  engine/      useMotionEngine.ts (frame -> score -> trigger -> alert) · zoneStore.ts
   alert/       alertWeb.ts (Web Audio + vibration)
-  ui/          ZoneOverlay.tsx · LabelModal.tsx
+  ui/          ZoneOverlay.tsx
 App.tsx        main screen
 scripts/       selftest.ts (headless logic checks)
 ```
