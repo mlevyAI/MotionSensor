@@ -17,7 +17,9 @@ export const DEFAULT_GRID: GridConfig = {
   rows: 4,
   sampleWidth: 96,
   sampleHeight: 72,
-  pixelNoiseThreshold: 22,
+  // Higher = less twitchy. Ignores sensor noise and small camera jitter; only
+  // meaningful brightness changes count as motion.
+  pixelNoiseThreshold: 30,
 };
 
 export const zoneCount = (g: GridConfig): number => g.cols * g.rows;

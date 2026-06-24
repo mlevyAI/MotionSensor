@@ -28,7 +28,7 @@ function CameraViewWeb(
   onStatusRef.current = onStatus;
 
   useImperativeHandle(ref, () => ({
-    captureThumbnail(maxWidth = 200): string | null {
+    captureThumbnail(maxWidth = 480): string | null {
       const video = videoRef.current;
       if (!video || !video.videoWidth) return null;
       const aspect = video.videoHeight / video.videoWidth;
@@ -41,7 +41,7 @@ function CameraViewWeb(
       if (!cx) return null;
       cx.drawImage(video, 0, 0, w, h);
       try {
-        return c.toDataURL('image/jpeg', 0.6);
+        return c.toDataURL('image/jpeg', 0.85);
       } catch {
         return null;
       }
