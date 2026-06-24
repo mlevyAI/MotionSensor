@@ -10,14 +10,15 @@ import { isTriggered, triggeringZones } from '../labeling/thresholds';
 import { ZoneConfig } from '../labeling/types';
 import { Sensitivity, loadZoneSettings, saveZoneSettings } from './zoneStore';
 
-const CONSECUTIVE_FRAMES = 3;
+const CONSECUTIVE_FRAMES = 2;
 const ALERT_COOLDOWN_MS = 5000;
 
 /** Fraction of a zone's pixels that must change to count as "movement". */
 export const SENSITIVITY_THRESHOLD: Record<Sensitivity, number> = {
-  low: 0.25, // only large movements
-  medium: 0.15,
-  high: 0.07, // small movements too
+  low: 0.12, // only clear, nearby movements
+  medium: 0.04,
+  high: 0.015,
+  max: 0.005, // tiny / distant movement (noisier)
 };
 
 export type { Sensitivity };
@@ -35,6 +36,7 @@ function buildConfig(forbidden: number[], sensitivity: Sensitivity, grid: GridCo
 export function useMotionEngine(grid: GridConfig = DEFAULT_GRID) {
   const [scores, setScores] = useState<number[]>(() => new Array(zoneCount(grid)).fill(0));
   const [peakZone, setPeakZone] = useState(0);
+  const [peakScore, setPeakScore] = useState(0);
   const [monitoring, setMonitoring] = useState(false);
   const [forbiddenZones, setForbiddenZones] = useState<number[]>(
     () => loadZoneSettings()?.forbiddenZones ?? [],
@@ -72,6 +74,7 @@ export function useMotionEngine(grid: GridConfig = DEFAULT_GRID) {
       const result = computeZoneScores(prev, frame, grid);
       setScores(result.scores);
       setPeakZone(result.peakZone);
+      setPeakScore(result.peakScore);
 
       const cfg = zoneConfigRef.current;
       if (monitoringRef.current && cfg) {
@@ -98,6 +101,10 @@ export function useMotionEngine(grid: GridConfig = DEFAULT_GRID) {
   }, []);
 
   const clearZones = useCallback(() => setForbiddenZones([]), []);
+  const selectAllZones = useCallback(
+    () => setForbiddenZones(Array.from({ length: zoneCount(grid) }, (_, i) => i)),
+    [grid],
+  );
   const clearBanner = useCallback(() => setBanner(null), []);
   const primeAlert = useCallback(() => alerter.prime(), []);
 
@@ -105,11 +112,13 @@ export function useMotionEngine(grid: GridConfig = DEFAULT_GRID) {
     grid,
     scores,
     peakZone,
+    peakScore,
     monitoring,
     setMonitoring,
     forbiddenZones,
     toggleZone,
     clearZones,
+    selectAllZones,
     sensitivity,
     setSensitivity,
     zoneConfig,

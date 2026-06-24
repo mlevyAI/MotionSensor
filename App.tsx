@@ -13,8 +13,9 @@ const GRID = DEFAULT_GRID;
 
 const SENSITIVITY_LABELS: { key: Sensitivity; label: string }[] = [
   { key: 'low', label: 'Low' },
-  { key: 'medium', label: 'Medium' },
+  { key: 'medium', label: 'Med' },
   { key: 'high', label: 'High' },
+  { key: 'max', label: 'Max' },
 ];
 
 export default function App() {
@@ -108,6 +109,23 @@ export default function App() {
 
         <StatusLine status={status} detail={statusDetail} cameraOn={cameraOn} />
 
+        {cameraOn && status === 'streaming' ? (
+          <Text style={styles.motion}>
+            Live motion (busiest zone): <Text style={styles.motionPct}>{Math.round(engine.peakScore * 100)}%</Text>
+          </Text>
+        ) : null}
+
+        {editing ? (
+          <View style={styles.zoneTools}>
+            <Pressable style={styles.zoneToolBtn} onPress={engine.selectAllZones}>
+              <Text style={styles.zoneToolText}>Select all</Text>
+            </Pressable>
+            <Pressable style={styles.zoneToolBtn} onPress={engine.clearZones}>
+              <Text style={styles.zoneToolText}>Clear</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
         {editing ? (
           <Text style={styles.guide}>
             📌 Prop the phone up and keep it still. Tap the zones where movement is{' '}
@@ -155,11 +173,6 @@ export default function App() {
                   {engine.monitoring ? 'Disarm' : forbiddenCount === 0 ? 'Mark zones first' : 'Arm watch'}
                 </Text>
               </Pressable>
-              {editing && forbiddenCount > 0 ? (
-                <Pressable style={[styles.ctrl, styles.neutral]} onPress={engine.clearZones}>
-                  <Text style={styles.ctrlText}>Clear</Text>
-                </Pressable>
-              ) : null}
               <Pressable style={[styles.ctrl, styles.stop]} onPress={stop}>
                 <Text style={styles.ctrlText}>Stop</Text>
               </Pressable>
@@ -294,6 +307,17 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   bold: { color: '#fff', fontWeight: '700' },
+  motion: { color: '#9aa5b1', fontSize: 13, fontVariant: ['tabular-nums'] },
+  motionPct: { color: '#43c47a', fontWeight: '800' },
+  zoneTools: { flexDirection: 'row', gap: 10 },
+  zoneToolBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 9,
+    alignItems: 'center',
+    backgroundColor: '#1b2430',
+  },
+  zoneToolText: { color: '#c5ced8', fontWeight: '700', fontSize: 13 },
   sensRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sensLabel: { color: '#9aa5b1', fontSize: 13, fontWeight: '600' },
   sensBtns: { flexDirection: 'row', gap: 8 },
