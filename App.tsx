@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CameraView } from './src/camera/CameraView';
 import { CameraStatus } from './src/camera/types';
@@ -35,6 +35,26 @@ export default function App() {
   const forbiddenCount = engine.forbiddenZones.length;
   const editing = cameraOn && !engine.monitoring;
   const liveTriggers = engine.monitoring ? triggeringZones(engine.scores, engine.zoneConfig) : [];
+
+  // Full-screen red flash on each alert (guaranteed visual, even on silent mode).
+  const [flash, setFlash] = useState(false);
+  const bannerTs = engine.banner?.ts;
+  useEffect(() => {
+    if (!bannerTs) return;
+    setFlash(true);
+    const id = setTimeout(() => setFlash(false), 6000);
+    return () => clearTimeout(id);
+  }, [bannerTs]);
+
+  const arm = () => {
+    if (!engine.monitoring) engine.primeAlert(); // re-unlock audio under this tap
+    engine.setMonitoring(!engine.monitoring);
+  };
+
+  const dismissAlert = () => {
+    setFlash(false);
+    engine.clearBanner();
+  };
 
   return (
     <View style={styles.root}>
@@ -128,7 +148,7 @@ export default function App() {
             <>
               <Pressable
                 style={[styles.ctrl, engine.monitoring ? styles.armed : styles.primary]}
-                onPress={() => engine.setMonitoring(!engine.monitoring)}
+                onPress={arm}
                 disabled={forbiddenCount === 0}
               >
                 <Text style={styles.ctrlText}>
@@ -178,6 +198,16 @@ export default function App() {
           Foreground-only · all on-device · keep the phone still while watching
         </Text>
       </ScrollView>
+
+      {flash && engine.banner ? (
+        <Pressable style={styles.flash} onPress={dismissAlert}>
+          <Text style={styles.flashTitle}>⚠ MOVEMENT</Text>
+          <Text style={styles.flashZones}>
+            {engine.banner.zones.map((z) => zoneLabel(z, GRID)).join(' · ')}
+          </Text>
+          <Text style={styles.flashDismiss}>tap to dismiss</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -287,4 +317,19 @@ const styles = StyleSheet.create({
   zoneList: { color: '#ffd23d', fontSize: 14, fontWeight: '700', fontVariant: ['tabular-nums'] },
   dim: { color: '#7c8896', fontSize: 13 },
   footer: { color: '#5a6573', fontSize: 11, textAlign: 'center', marginTop: 8, marginBottom: 24 },
+  flash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(214,40,40,0.94)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    zIndex: 100,
+  },
+  flashTitle: { color: '#fff', fontSize: 40, fontWeight: '900', letterSpacing: 1 },
+  flashZones: { color: '#fff', fontSize: 22, fontWeight: '700' },
+  flashDismiss: { color: 'rgba(255,255,255,0.85)', fontSize: 14, marginTop: 8 },
 });
