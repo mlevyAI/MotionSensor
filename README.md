@@ -52,13 +52,15 @@ phone you need HTTPS — use the GitHub Pages deploy below.
 ## Try it on your iPhone (GitHub Pages)
 
 A workflow at `.github/workflows/deploy-web.yml` builds the static web export on
-every push to `main` and deploys it via **GitHub Actions** Pages. The
-`configure-pages` step auto-enables Pages (the repo must be public, or on a plan
-that includes Pages for private repos).
+every push to `main` and publishes it to the **`gh-pages`** branch (needs only
+`contents: write`, so CI is green on its own). The Pages *source* must be
+selected once — the default Actions token cannot enable Pages itself.
 
-1. Push to `main` (or run the workflow) — it enables Pages, builds, and deploys.
-2. Open the published URL `https://<owner>.github.io/motionsensor/` in Safari on
-   your iPhone and **Allow** camera access.
+1. The workflow runs on `main` and creates/updates the `gh-pages` branch.
+2. One-time (repo must be public): **Settings → Pages → Build and deployment →
+   Source: Deploy from a branch → Branch: `gh-pages` / `(root)`** → Save.
+3. Open `https://<owner>.github.io/motionsensor/` in Safari on your iPhone and
+   **Allow** camera access.
 
 > The export uses `EXPO_BASE_URL=/motionsensor` so assets resolve under the
 > project-pages subpath. For root hosting (Netlify/Vercel), build without that env.
